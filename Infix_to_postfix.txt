@@ -1,0 +1,210 @@
+
+#include<stdio.h>       // Includes standard input/output functions
+#include<stdlib.h>      // Includes standard library functions
+#include<string.h>      // Includes string handling functions
+#include<ctype.h>       // Includes character checking functions
+
+#define MAX 100         // Defines maximum stack and expression size
+
+char stack[MAX];        // Declares character stack
+int top=-1;             // Initializes stack top to -1 (empty stack)
+
+// Function to insert an element into the stack
+void push(char data)
+{
+        // Checks whether the stack is full
+        if(top==MAX-1)
+        {
+                printf("Stack is full\n");
+        }
+        else
+        {
+                // Increments top and inserts data
+                stack[++top]=data;
+        }
+}
+
+// Function to remove an element from the stack
+char pop()
+{
+        // Checks whether the stack is empty
+        if(top==-1)
+        {
+                return '\0';  // Returns null character
+        }
+
+        // Returns the top element and decreases top
+        return stack[top--];
+}
+
+// Function to return the top element without removing it
+char peek()
+{
+        // Checks whether the stack is empty
+        if(top==-1)
+        {
+                return '\0';
+        }
+
+        // Returns the topmost stack element
+        return stack[top];
+}
+
+// Function to determine operator precedence
+int precedence(char ch)
+{
+        // Returns highest precedence for exponent
+        if(ch=='^')
+                return 3;
+
+        // Returns precedence for multiplication,
+        // division and modulus
+        else if(ch=='*'||ch=='/'||ch=='%')
+                return 2;
+
+        // Returns precedence for addition and subtraction
+        else if(ch=='+'||ch=='-')
+                return 1;
+
+        // Returns zero for other characters
+        else
+                return 0;
+}
+
+// Function to check whether a character is an operator
+int isOperator(char ch)
+{
+        // Returns true if the character is an operator
+        return (ch=='+' || ch=='-' ||
+                ch=='*' || ch=='/' ||
+                ch=='%' || ch=='^');
+}
+
+// Main function
+int main()
+{
+        // Declares infix and postfix expression arrays
+        char infix[MAX],postfix[MAX];
+
+        // Declares a character variable
+        char ch;
+
+        // Declares loop variable and postfix index
+        int i,j=0;
+
+        // Reads the infix expression from the user
+        printf("Enter the infix expression:=\n");
+
+        // Reads input including spaces
+        fgets(infix,MAX,stdin);
+
+        // Removes the newline character from the input
+        if(infix[strlen(infix)-1]=='\n')
+        {
+                infix[strlen(infix)-1]='\0';
+        }
+
+        // Traverses the infix expression
+        for(i=0;infix[i]!='\0';i++)
+        {
+                // Stores the current character
+                ch=infix[i];
+
+                // Ignores whitespace characters
+                if(isspace((unsigned char)ch))
+                {
+                        continue;
+                }
+
+                // Checks whether the character is an operand
+                if(isalnum((unsigned char)ch))
+                {
+                        // Adds operand directly to postfix
+                        postfix[j++]=ch;
+                }
+
+                // Checks for opening parentheses
+                else if(ch=='(' || ch=='[')
+                {
+                        // Pushes opening bracket onto stack
+                        push(ch);
+                }
+
+                // Checks for closing parentheses
+                else if(ch==')' || ch==']')
+                {
+                        // Pops operators until an opening bracket
+                        while(top!=-1 &&
+                              peek()!='(' &&
+                              peek()!='[')
+                        {
+                                // Adds popped operator to postfix
+                                postfix[j++]=pop();
+                        }
+
+                        // Checks whether an opening bracket exists
+                        if(top!=-1)
+                        {
+                                // Removes opening bracket
+                                pop();
+                        }
+                        else
+                        {
+                                // Reports unmatched closing bracket
+                                printf("Invalid expression\n");
+                                return 1;
+                        }
+                }
+
+                // Checks whether the character is an operator
+                else if(isOperator(ch))
+                {
+                        // Pops operators with higher or equal
+                        // precedence from the stack
+                        while(top!=-1 &&
+                              peek()!='(' &&
+                              peek()!='[' &&
+                              (precedence(peek())>precedence(ch) ||
+                              (precedence(peek())==precedence(ch)
+                              && ch!='^')))
+                        {
+                                // Adds operator to postfix expression
+                                postfix[j++]=pop();
+                        }
+
+                        // Pushes current operator onto stack
+                        push(ch);
+                }
+
+                // Handles invalid characters
+                else
+                {
+                        printf("Invalid character: %c\n",ch);
+                        return 1;
+                }
+        }
+
+        // Pops all remaining operators from the stack
+        while(top!=-1)
+        {
+                // Checks for unmatched opening brackets
+                if(peek()=='(' || peek()=='[')
+                {
+                        printf("Invalid expression\n");
+                        return 1;
+                }
+
+                // Adds remaining operator to postfix
+                postfix[j++]=pop();
+        }
+
+        // Adds null character to terminate postfix string
+        postfix[j]='\0';
+
+        // Displays the converted postfix expression
+        printf("Postfix expression:= %s\n",postfix);
+
+        // Returns zero to indicate successful execution
+        return 0;
+}
+
